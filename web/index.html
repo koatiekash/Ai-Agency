@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agency City</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><text y='9' font-size='9'>🏙️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f2ff;--panel:#fff;--panel2:#eceeff;--line:#cdd0f3;--tx:#15133f;--mut:#585b96;--cy:#0e7490;--mg:#be185d;--gn:#047857;--am:#b45309;--rd:#b91c1c;--pu:#6d28d9;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#070521;--panel:#13104a;--panel2:#0c0934;--line:#2d2a86;--tx:#e9eaff;--mut:#a3a5e6;--cy:#22d3ee;--mg:#ff5db1;--gn:#3ee6a0;--am:#ffb020;--rd:#ff6b78;--pu:#b79cff}}
+:root[data-theme="dark"]{--bg:#070521;--panel:#13104a;--panel2:#0c0934;--line:#2d2a86;--tx:#e9eaff;--mut:#a3a5e6;--cy:#22d3ee;--mg:#ff5db1;--gn:#3ee6a0;--am:#ffb020;--rd:#ff6b78;--pu:#b79cff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 "Chakra Petch",system-ui,sans-serif;min-height:100vh}
+.mono,td,th,.kpi b,pre{font-family:"JetBrains Mono",ui-monospace,monospace}
+.wrap{max-width:1360px;margin:0 auto;padding:14px 16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{margin:0;font-size:26px;letter-spacing:3px}.sub{margin:2px 0 0;color:var(--mut);font-size:13px}
+.ctl{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-block;font-size:11px;letter-spacing:.8px;padding:3px 9px;border-radius:99px;border:1px solid currentColor;font-weight:700;white-space:nowrap}
+.gn{color:var(--gn)}.am{color:var(--am)}.rd{color:var(--rd)}.cy{color:var(--cy)}.mg{color:var(--mg)}.pu{color:var(--pu)}.mut{color:var(--mut)}
+button{font:inherit;color:var(--cy);background:transparent;border:1px solid var(--cy);border-radius:9px;padding:6px 12px;cursor:pointer;min-height:36px}
+button.danger{color:var(--rd);border-color:var(--rd)}button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,.b:focus-visible,.dist:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+.kpis{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px}
+.kpi{flex:1 0 120px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+.kpi b{display:block;font-size:19px}.kpi span{font-size:11.5px;color:var(--mut)}
+.main{display:grid;gap:12px;margin-top:12px}.main>*{min-width:0}
+@media (min-width:1000px){.main{grid-template-columns:minmax(0,1.35fr) minmax(380px,.8fr);align-items:start}.panel{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto}}
+.cityCard{background:#070521;border:1px solid #2d2a86;border-radius:16px;overflow:hidden;color:#e9eaff;position:relative}
+svg#city{display:block;width:100%;height:auto}
+.b{cursor:pointer}.b:hover .lab rect,.b.sel .lab rect{fill:rgba(40,30,130,.95);stroke-width:2.6}.b.sel .box{filter:drop-shadow(0 0 14px currentColor)}
+.lt{animation:fl 3.2s ease-in-out infinite}@keyframes fl{50%{opacity:.3}}
+.beam{animation:bm 3s ease-in-out infinite}@keyframes bm{50%{opacity:.35}}
+.bub{animation:pop .25s ease-out}@keyframes pop{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.lt,.beam,.bub{animation:none}}
+.ticker{position:absolute;left:10px;right:10px;bottom:10px;font:12px "JetBrains Mono",monospace;color:#d6d8ff;background:rgba(12,9,52,.82);border:1px solid #2d2a86;border-radius:10px;padding:6px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.districts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:10px;background:#0c0934}
+.dist{background:#14114a;color:#e9eaff;border:1px solid #2d2a86;border-radius:11px;padding:8px 10px;text-align:left;display:block;width:100%;min-height:0}
+.dist.sel{border-color:#22d3ee;box-shadow:0 0 0 1px #22d3ee inset}.dist small{display:block;color:#a3a5e6;font-size:11.5px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:#6b6ea8}.dot.on{background:#3ee6a0;box-shadow:0 0 8px #3ee6a0}.dot.warn{background:#ffb020}.dot.bad{background:#ff6b78}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+.panel h2{margin:0;font-size:20px}.panel h3{margin:16px 0 6px;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;color:var(--cy)}
+.desc{margin:3px 0 8px;color:var(--mut);font-size:13.5px}
+.ag{display:flex;gap:8px;padding:7px 0;border-top:1px solid var(--line)}.ag b{display:block;font-size:14px}.ag span{color:var(--mut);font-size:12.5px}.ag .dot{margin-top:6px;flex:none}
+.rec{border-top:1px solid var(--line);padding:6px 0}.rec summary{cursor:pointer;font-size:13px;display:flex;gap:6px;align-items:baseline}.rec summary .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+pre{white-space:pre-wrap;word-break:break-word;font-size:12px;line-height:1.4;margin:6px 0;color:var(--mut);max-height:320px;overflow:auto}
+.row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--line);font-size:13px}
+.banner{border:1px solid var(--am);color:var(--am);border-radius:10px;padding:8px 11px;margin:8px 0;font-size:13px}.banner.rd{border-color:var(--rd);color:var(--rd)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.filters select{font:inherit;font-size:13px;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;flex:1 1 110px}
+.foot{color:var(--mut);font-size:12px;margin:14px 2px}
+</style></head>
+<body><div class="wrap">
+<header>
+ <div><h1>AGENCY CITY</h1><p class="sub" id="sub">Three automated businesses, one Command Center</p></div>
+ <div class="ctl"><span id="mode" class="pill"></span>
+  <button id="run">Run cycle now</button><button id="pause">Pause</button><button id="kill" class="danger">Kill switch</button></div>
+</header>
+<div class="kpis" id="kpis"></div>
+<div class="main">
+ <section><div class="cityCard"><svg id="city" viewBox="0 0 1000 730" role="img" aria-label="Isometric city: each building is a department. Select one for details."></svg>
+  <div class="ticker" id="ticker">Waiting for the first cycle…</div></div>
+  <nav class="districts" id="districts" aria-label="Departments"></nav></section>
+ <aside class="panel" id="panel" aria-live="polite"></aside>
+</div>
+<p class="foot" id="foot"></p>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => n == null ? '–' : (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString();
+const ago = ts => { if (!ts) return 'never'; const s = Math.max(0, Date.now()/1000 - ts); return s < 90 ? 'just now' : s < 5400 ? Math.round(s/60)+'m ago' : s < 129600 ? Math.round(s/3600)+'h ago' : Math.round(s/86400)+'d ago'; };
+const DEMO = window.DEMO_STATE || null;   // a published snapshot sets this; the live app uses the API
+let S = null, lastEvent = 0, sel = (location.hash || '#command').slice(1), hist = {};
+
+/* ---------------- buildings ---------------- */
+const C = {trading:'#3ee6a0', wholesale:'#ffb020', tiktok:'#ff5db1', command:'#22d3ee', marketing:'#b79cff', comp:'#ff6b78'};
+const B = [
+ {id:'command', n:'COMMAND CENTER', x:500, y:395, w:62, h:170, c:C.command, biz:'shared', dept:'command'},
+ {id:'trading-research', n:'TRADING RESEARCH', x:150, y:270, w:44, h:84, c:C.trading, biz:'trading', dept:'research'},
+ {id:'trading-hq', n:'TRADING DESK', x:118, y:500, w:46, h:66, c:C.trading, biz:'trading', dept:'hq'},
+ {id:'trading-compliance', n:'RISK & COMPLIANCE', x:300, y:388, w:32, h:40, c:C.trading, biz:'trading', dept:'compliance', comp:true},
+ {id:'wholesale-research', n:'WHOLESALE RESEARCH', x:850, y:270, w:44, h:84, c:C.wholesale, biz:'wholesale', dept:'research'},
+ {id:'wholesale-hq', n:'WHOLESALE OFFICE', x:882, y:500, w:46, h:66, c:C.wholesale, biz:'wholesale', dept:'hq'},
+ {id:'wholesale-compliance', n:'WHOLESALE COMPLIANCE', x:700, y:388, w:32, h:40, c:C.wholesale, biz:'wholesale', dept:'compliance', comp:true},
+ {id:'tiktok-research', n:'TIKTOK RESEARCH', x:270, y:625, w:42, h:60, c:C.tiktok, biz:'tiktok', dept:'research'},
+ {id:'tiktok-hq', n:'TIKTOK SHOP', x:730, y:625, w:42, h:56, c:C.tiktok, biz:'tiktok', dept:'hq'},
+ {id:'tiktok-compliance', n:'SHOP COMPLIANCE', x:500, y:668, w:30, h:34, c:C.tiktok, biz:'tiktok', dept:'compliance', comp:true},
+ {id:'marketing', n:'MARKETING STUDIO', x:740, y:150, w:38, h:56, c:C.marketing, biz:'shared', dept:'marketing'},
+];
+const BY = Object.fromEntries(B.map(b => [b.id, b]));
+const DESC = {
+ command:'Executives report here. The CEO briefing, every report, test result, decision and compliance review from every department is stored here and searchable.',
+ 'trading-research':'Master Chart Analyzer, Signal Identifier, Quantitative Analyst and the Backtester, which re-optimizes the strategy walk-forward and only promotes changes that hold up on unseen data.',
+ 'trading-hq':'The Head Trader acts on research for the HeroFX account (index, gold and oil CFDs): enter, exit, adjust or stand aside. Orders pass hard risk limits in code before HeroFX sees them.',
+ 'trading-compliance':'Enforces max contracts, per-trade risk, daily loss, drawdown, mandatory stops and out-of-sample validation. Rejections go back to the desk to revise.',
+ 'wholesale-research':'House Hunter, Deal Analyst (ARV, repairs, MAO), Deal/Buyer Finder and Appointment Setter.',
+ 'wholesale-hq':'The Acquisitions Director chooses leads, offers and appointments and markets contracts to matched cash buyers.',
+ 'wholesale-compliance':'Footprint: 12 Midwest states + Florida. Per-state wholesaling rules (license caps in IL, NE, WI; equitable-interest disclosures), TCPA / Do-Not-Call, CAN-SPAM and opt-outs, Fair Housing, offer ≤ MAO.',
+ 'tiktok-research':'Product Scout, Trend Watcher, Sales Analyst and Market Statistician score home-goods products on margin, momentum, volume and saturation.',
+ 'tiktok-hq':'The TikTok Shop GM picks the product to push, the price, test inventory and creator plan, then briefs Marketing.',
+ 'tiktok-compliance':'TikTok Shop policies, prohibited categories, claim substantiation, #ad disclosure and the margin floor.',
+ marketing:'Researcher → Creator → Editor → Creative Director, then Marketing Compliance. Rejected creative goes back to be fixed and checked again.',
+};
+const agentsIn = b => !S ? [] : S.agents.filter(a => b.id === 'command' ? a.dept === 'command' : b.dept === 'marketing' ? a.dept === 'marketing' : a.business === b.biz && a.dept === b.dept);
+
+function rng(seed){ let s = 0; for (const ch of seed) s = (s*31 + ch.charCodeAt(0)) >>> 0; return () => (s = (s*1664525 + 1013904223) >>> 0) / 4294967296; }
+const anchor = b => [b.x, b.y + b.w/2 + 2];
+function roadPath(a, b){ const [x1,y1] = anchor(a), [x2,y2] = anchor(b); const mx = (x1+x2)/2, my = Math.max(y1,y2) + 26; return `M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}`; }
+const ROADS = [];
+['trading','wholesale','tiktok'].forEach(z => { ROADS.push([`${z}-research`,`${z}-hq`],[`${z}-hq`,`${z}-compliance`],[`${z}-hq`,'command'],[`${z}-hq`,'marketing']); });
+
+function drawCity(){
+ const r = rng('skyline');
+ let g = `<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a0630"/><stop offset=".5" stop-color="#2a0d62"/><stop offset="1" stop-color="#0a0730"/></linearGradient>
+ <radialGradient id="fog" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#6d3cff" stop-opacity=".35"/><stop offset="1" stop-color="#6d3cff" stop-opacity="0"/></radialGradient>
+ <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+ <rect width="1000" height="730" fill="url(#sky)"/>`;
+ for (let i = 0; i < 52; i++){ const x = i*20 + r()*8, h = 40 + r()*140, w = 12 + r()*14, y = 240 - h;
+  g += `<rect x="${x}" y="${y}" width="${w}" height="${h+60}" fill="#150b4f" opacity="${.5 + r()*.35}"/>`;
+  for (let k = 0; k < h/14; k++) if (r() > .55) g += `<rect x="${x+2+r()*(w-6)}" y="${y+6+k*14}" width="2.4" height="3" fill="${['#ff5db1','#22d3ee','#b79cff'][Math.floor(r()*3)]}" opacity=".7"/>`; }
+ g += `<g stroke="#8b6bff" stroke-opacity=".15">`;
+ for (let i = -14; i < 30; i++) g += `<path d="M${i*64} 240 L${i*64+790} 730"/><path d="M${i*64+790} 240 L${i*64} 730"/>`;
+ g += `</g><ellipse cx="500" cy="420" rx="440" ry="200" fill="url(#fog)"/>`;
+ ROADS.forEach(([a,b]) => { const A = BY[a], Bb = BY[b]; g += `<path d="${roadPath(A,Bb)}" fill="none" stroke="${A.c}" stroke-opacity=".38" stroke-width="2" filter="url(#glow)"/>`; });
+ [...B].sort((a,b) => a.y - b.y).forEach(b => g += building(b));
+ const cmd = BY.command; g += `<rect class="beam" x="${cmd.x-3}" y="0" width="6" height="${cmd.y-cmd.h-cmd.w/2}" fill="#22d3ee" opacity=".5" filter="url(#glow)"/>`;
+ g += `<g id="fx"></g>`;
+ $('#city').innerHTML = g;
+ document.querySelectorAll('.b').forEach(el => { el.onclick = () => select(el.dataset.id); el.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); select(el.dataset.id); } }; });
+}
+function building(b){
+ const {x, y, w, h, c} = b, d = w/2, r = rng(b.id);
+ const top = `${x},${y-h-d} ${x+w},${y-h} ${x},${y-h+d} ${x-w},${y-h}`, L = `${x-w},${y-h} ${x},${y-h+d} ${x},${y+d} ${x-w},${y}`, Rf = `${x},${y-h+d} ${x+w},${y-h} ${x+w},${y} ${x},${y+d}`;
+ const win = (face,u0,u1,v0,v1) => { const f = u => face === 'L' ? [x-w+u*w, y-h+u*d] : [x+u*w, y-h+d-u*d]; const [a,at] = f(u0), [bb,bt] = f(u1); return `${a},${at+v0*h} ${bb},${bt+v0*h} ${bb},${bt+v1*h} ${a},${at+v1*h}`; };
+ let ws = ''; const cols = Math.max(2, Math.floor(w/10)), rows = Math.max(3, Math.floor(h/13));
+ for (const face of ['L','R']) for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++){ if (r() < .3) continue;
+  ws += `<polygon class="${r() < .12 ? 'lt' : ''}" points="${win(face,(j+.2)/cols,(j+.75)/cols,(i+.25)/(rows+.5),(i+.65)/(rows+.5))}" fill="${c}" opacity="${(face==='L'?.55:.8)*(.5+r()*.5)}"/>`; }
+ const shield = b.comp ? `<path d="M${x} ${y-h-d-30} l11 4 v8 c0 8 -6 12 -11 14 c-5 -2 -11 -6 -11 -14 v-8 z" fill="#2a1a82" stroke="${C.comp}" stroke-width="1.6"/><text x="${x}" y="${y-h-d-13}" text-anchor="middle" font-size="11" fill="${C.comp}">✓</text>` : '';
+ const lw = b.comp ? 168 : 186, ty = y - h - d - (b.comp ? 92 : 66);
+ return `<g class="b" id="b-${b.id}" tabindex="0" role="button" aria-label="${b.n}" data-id="${b.id}" style="color:${c}">
+  <ellipse cx="${x}" cy="${y+d+3}" rx="${w+14}" ry="${d+9}" fill="${c}" opacity=".18"/>
+  <g class="box"><polygon points="${L}" fill="#120a46" stroke="${c}" stroke-width="1.6"/><polygon points="${Rf}" fill="#1b1060" stroke="${c}" stroke-width="1.6"/><polygon points="${top}" fill="#2a1a82" stroke="${c}" stroke-width="2" filter="url(#glow)"/>${ws}</g>
+  ${shield}<circle id="bc-${b.id}" cx="${x+w-6}" cy="${y-h-6}" r="4.5" fill="#6b6ea8" filter="url(#glow)"/>
+  <path d="M${x} ${ty+44} L${x} ${y-h-d-(b.comp?34:8)}" stroke="${c}" stroke-opacity=".6" stroke-dasharray="3 3"/>
+  <g class="lab"><rect x="${x-lw/2}" y="${ty}" width="${lw}" height="44" rx="9" fill="rgba(20,14,80,.82)" stroke="${c}" stroke-width="1.6"/>
+  <text x="${x}" y="${ty+19}" text-anchor="middle" font-size="13.5" font-weight="700" fill="${c}" letter-spacing=".5">${b.n}</text>
+  <text id="bm-${b.id}" x="${x}" y="${ty+36}" text-anchor="middle" font-size="12" fill="#d6d8ff"></text></g></g>`;
+}
+
+/* ---------------- live traffic: a glowing courier for every handoff ---------------- */
+const KC = {approved:'#3ee6a0', rejected:'#ff6b78', executed:'#22d3ee', briefing:'#22d3ee'};
+function courier(ev){
+ const a = BY[ev.src], b = BY[ev.dst]; if (!a || !b) return;
+ const fx = $('#fx'); if (!fx) return;
+ const col = KC[ev.kind] || (C[ev.business] || '#e9eaff');
+ if (a === b){ bubble(a, ev.text, col); return; }
+ const id = 'p' + ev.id, path = roadPath(a, b);
+ fx.insertAdjacentHTML('beforeend', `<g id="${id}"><path id="${id}r" d="${path}" fill="none" stroke="none"/><circle r="5.5" fill="${col}" filter="url(#glow)"><animateMotion dur="1.6s" fill="freeze" begin="indefinite"><mpath href="#${id}r"/></animateMotion></circle></g>`);
+ const g = document.getElementById(id); g.querySelector('animateMotion').beginElement();
+ setTimeout(() => { g.remove(); bubble(b, ev.text, col); }, 1650);
+}
+function bubble(b, text, col){
+ const fx = $('#fx'); const t = String(text || '').slice(0, 46); const w = Math.max(80, t.length * 7.1 + 18);
+ const x = Math.min(990 - w, Math.max(10, b.x - w/2)), y = b.y - b.h - b.w/2 - 20 + (b.comp ? -6 : 0);
+ const id = 'u' + Math.random().toString(36).slice(2);
+ fx.insertAdjacentHTML('beforeend', `<g id="${id}" class="bub"><rect x="${x}" y="${y-18}" width="${w}" height="22" rx="7" fill="#0c0934" stroke="${col}"/><text x="${x+9}" y="${y-3}" font-size="11.5" fill="#e9eaff" font-family="JetBrains Mono,monospace">${esc(t)}</text></g>`);
+ setTimeout(() => document.getElementById(id)?.remove(), 2600);
+}
+let queue = [];
+setInterval(() => { const ev = queue.shift(); if (ev){ courier(ev); $('#ticker').textContent = `${new Date(ev.ts*1000).toLocaleTimeString()}  ${ev.text}`; } }, 420);
+
+/* ---------------- status, metrics, panel ---------------- */
+const count = (biz, kind, status) => { const k = S?.stats?.[biz]?.[kind] || {}; return status ? (k[status] || 0) : Object.values(k).reduce((a,b) => a+b, 0); };
+const isPaused = b => (S?.paused_businesses || []).includes(b.biz);
+function status(b){
+ if (isPaused(b)) return 'paused';
+ if (S?.running) return 'active';
+ const t = S?.last_event_ts?.[b.id]; return t && Date.now()/1000 - t < 3600 ? 'active' : (S?.cycle ? 'idle' : 'off');
+}
+function metric(b){
+ if (!S) return '';
+ const z = b.biz;
+ if (isPaused(b)) return 'PAUSED';
+ if (b.id === 'command') return S.cycle ? `Cycle ${S.cycle} · ${S.briefing ? 'briefing filed' : 'no briefing'}` : 'Not started';
+ if (b.dept === 'research') return `${count(z,'report')} reports`;
+ if (b.dept === 'compliance'){ const ok = count(z,'review','approved'), no = count(z,'review','rejected'); return ok+no ? `${ok} ✓ · ${no} sent back` : 'No reviews yet'; }
+ if (b.id === 'trading-hq'){ const a = S.trading.account || {}; return `${S.trading.live ? 'LIVE' : 'Paper'} ${money(a.equity)}`; }
+ if (b.dept === 'hq') return `${count(z,'action')} actions`;
+ if (b.id === 'marketing') return `${count('shared','asset')} creatives`;
+ return '';
+}
+function updateCity(){
+ B.forEach(b => { const st = status(b); const col = {active:'#3ee6a0', idle:'#ffb020', off:'#6b6ea8', paused:'#6b6ea8'}[st];
+  const bx = document.querySelector('#b-'+b.id+' .box'); if (bx) bx.style.opacity = st === 'paused' ? .35 : 1;
+  $('#bc-'+b.id)?.setAttribute('fill', col); const m = $('#bm-'+b.id); if (m) m.textContent = metric(b);
+  document.getElementById('b-'+b.id)?.classList.toggle('sel', b.id === sel); });
+ $('#districts').innerHTML = B.map(b => `<button class="dist ${b.id === sel ? 'sel' : ''}" data-id="${b.id}"><i class="dot ${status(b) === 'active' ? 'on' : status(b) === 'idle' ? 'warn' : ''}"></i>${esc(b.n)}<small>${esc(metric(b))}</small></button>`).join('');
+ document.querySelectorAll('.dist').forEach(el => el.onclick = () => select(el.dataset.id));
+}
+function kpis(){
+ const tot = k => ['trading','wholesale','tiktok','shared'].reduce((a,z) => a + count(z, k), 0);
+ const ok = ['trading','wholesale','tiktok','shared'].reduce((a,z) => a + count(z,'review','approved'), 0);
+ const no = ['trading','wholesale','tiktok','shared'].reduce((a,z) => a + count(z,'review','rejected') + count(z,'review','escalated'), 0);
+ const a = S.trading.account || {};
+ const items = [['Cycle', S.cycle || 0], ['Research reports', tot('report')], ['Actions taken', tot('action')],
+  ['Compliance pass rate', ok+no ? Math.round(100*ok/(ok+no)) + '%' : '–'], ['Sent back to fix', no],
+  [S.trading.live ? 'Live equity' : 'Paper equity', money(a.equity)], ['Creatives', count('shared','asset')], ['Lessons learned', tot('lesson')]];
+ $('#kpis').innerHTML = items.map(([k,v]) => `<div class="kpi"><b>${esc(v)}</b><span>${esc(k)}</span></div>`).join('');
+ const m = $('#mode'); m.textContent = S.online ? 'CLAUDE AGENTS LIVE' : 'SIMULATED · NO API KEY'; m.className = 'pill ' + (S.online ? 'gn' : 'am');
+ $('#pause').textContent = S.paused ? 'Resume' : 'Pause'; $('#run').disabled = !!S.running || !!DEMO;
+ $('#run').textContent = S.running ? 'Cycle running…' : 'Run cycle now';
+ $('#kill').textContent = a.kill_switch ? 'Release kill switch' : 'Kill switch';
+ $('#foot').textContent = `${S.model} · cycle every ${S.interval_min} min · last cycle ${S.last_cycle_at || 'never'}` + (DEMO ? ' · snapshot preview (run server.py for the live city)' : '');
+}
+const pillFor = s => { const c = {approved:'gn', executed:'gn', paper_filled:'gn', booked:'gn', drafted:'cy', ready:'gn', promote:'gn', rejected:'rd', escalated:'rd', error:'rd', blocked:'rd', simulated:'am', hold:'mut'}[s] || 'mut'; return s ? `<span class="pill ${c}">${esc(s)}</span>` : ''; };
+function recs(rows){
+ if (!rows || !rows.length) return '<p class="desc">Nothing yet.</p>';
+ return rows.map(r => `<details class="rec"><summary>${pillFor(r.status)}<span class="pill mut">${esc(r.kind)}</span><span class="t">${esc(r.title || r.agent)}</span><span class="mut mono" style="font-size:11px">${ago(r.ts)}</span></summary><pre>${esc(JSON.stringify(r.payload, null, 2))}</pre></details>`).join('');
+}
+async function getHist(q){
+ if (DEMO) return (DEMO.history || []).filter(r => (!q.business || r.business === q.business) && (!q.kind || r.kind === q.kind) && (!q.dept || r.dept === q.dept)).slice(0, q.limit || 30);
+ const u = new URLSearchParams(Object.entries(q).filter(([,v]) => v)); const r = await fetch('/api/history?' + u); return r.json();
+}
+async function panel(){
+ const b = BY[sel] || BY.command, P = $('#panel');
+ let h = `<h2 style="color:${b.c}">${esc(b.n)}</h2><p class="desc">${esc(DESC[b.id])}</p>`;
+ h += `<h3>Team</h3>` + agentsIn(b).map(a => `<div class="ag"><i class="dot ${status(b)==='active'?'on':''}"></i><div><b>${esc(a.name)}</b><span>${esc(a.role)}</span></div></div>`).join('');
+ if (b.id === 'command'){
+  const br = S.briefing?.payload;
+  h += `<h3>CEO briefing</h3>` + (br ? `<p><b>${esc(br.headline)}</b></p>` + (br.by_business || []).map(x => `<div class="row"><span>${esc(x.business)}</span><span class="${{green:'gn',yellow:'am',red:'rd'}[x.status]}">${esc(x.summary)}</span></div>`).join('') + ((br.needs_human || []).length ? `<div class="banner">Needs you: ${(br.needs_human).map(esc).join(' · ')}</div>` : '') : '<p class="desc">No briefing yet. Run a cycle.</p>');
+  h += `<h3>Setup checklist</h3>` + S.setup.map(s => `<div class="row"><span>${s.ok ? '✅' : '⬜'} ${esc(s.name)}</span><span class="mut" style="text-align:right">${s.ok ? 'ready' : esc(s.fix)}</span></div>`).join('');
+  h += `<h3>Archive</h3><div class="filters"><select id="fb"><option value="">All businesses</option><option>trading</option><option>wholesale</option><option>tiktok</option><option>shared</option></select><select id="fk"><option value="">All kinds</option>${['report','decision','review','action','backtest','asset','briefing','kpi','lesson','error'].map(k => `<option>${k}</option>`).join('')}</select></div><div id="arch"></div>`;
+  P.innerHTML = h;
+  const load = async () => { $('#arch').innerHTML = recs(await getHist({business: $('#fb').value, kind: $('#fk').value, limit: 60})); };
+  $('#fb').onchange = $('#fk').onchange = load; load(); return;
+ }
+ if (b.id === 'trading-hq'){
+  const a = S.trading.account || {};
+  const brk = a.broker || 'paper'; h += `<div class="banner${brk === 'herofx-live' ? ' rd' : ''}">${brk === 'herofx-live' ? 'LIVE: real money on HeroFX.' : brk === 'herofx-demo' ? 'HeroFX demo account: real quotes and fills, no money at risk.' : 'Paper trading: HeroFX is not connected yet.'} Hard risk limits apply either way.</div>`;
+  if (a.kill_switch) h += `<div class="banner rd">Kill switch is ON. No new orders.</div>`;
+  h += `<h3>Account</h3>` + [['Equity', money(a.equity)], ['Peak', money(a.peak_equity)], ['Today', money(a.daily_pnl)], ['Position', a.position ? `${a.position.action} ${a.position.contracts} ${a.position.symbol} @ ${a.position.entry}` : 'flat'], ['Strategy', S.trading.champion ? JSON.stringify(S.trading.champion) : 'default']].map(([k,v]) => `<div class="row"><span class="mut">${k}</span><span class="mono">${esc(v)}</span></div>`).join('');
+ }
+ if (b.biz !== 'shared'){ const pz = isPaused(b); h += `<div class="banner${pz ? '' : ''}" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${pz ? 'This business is paused. Its agents skip every cycle.' : 'This business runs every cycle.'}</span><button id="bp">${pz ? 'Resume' : 'Pause business'}</button></div>`; }
+ const kinds = {research:['report','backtest'], hq:['decision','action','kpi'], compliance:['review'], marketing:['asset','review']}[b.dept];
+ h += `<h3>Latest</h3><div id="lat">Loading…</div>`; P.innerHTML = h;
+ const bp = $('#bp'); if (bp) bp.onclick = () => post(`/api/business/${b.biz}/pause?paused=${!isPaused(b)}`).then(panel);
+ const rows = [];
+ for (const k of kinds) rows.push(...await getHist({business: b.dept === 'marketing' ? 'shared' : b.biz, kind: k, limit: 15}));
+ rows.sort((x,y) => y.id - x.id); $('#lat').innerHTML = recs(rows.slice(0, 25));
+}
+function select(id){ sel = id; history.replaceState(null, '', '#' + id); updateCity(); panel(); }
+
+/* ---------------- polling ---------------- */
+async function tick(){
+ try {
+  if (DEMO){ S = S || DEMO.state; }
+  else { const r = await fetch('/api/state?after=' + lastEvent); S = await r.json(); }
+  S.last_event_ts = S.last_event_ts || {};
+  for (const ev of (DEMO ? [] : S.events)){ lastEvent = Math.max(lastEvent, ev.id); queue.push(ev);
+   [ev.src, ev.dst].forEach(id => S.last_event_ts[id] = ev.ts); }
+  window._lt = Object.assign(window._lt || {}, S.last_event_ts); S.last_event_ts = window._lt;
+  kpis(); updateCity(); if (!window._p){ window._p = 1; panel(); }
+ } catch (e){ $('#ticker').textContent = 'Cannot reach the Command Center API. Is server.py running?'; }
+}
+async function post(u){ if (DEMO) return; await fetch(u, {method:'POST'}); tick(); }
+$('#run').onclick = () => post('/api/cycle');
+$('#pause').onclick = () => post('/api/pause?paused=' + !S.paused);
+$('#kill').onclick = () => post('/api/kill-switch?on=' + !(S.trading.account || {}).kill_switch);
+drawCity(); tick(); setInterval(tick, DEMO ? 60000 : 2500);
+if (DEMO){ let i = 0; const evs = DEMO.events || []; setInterval(() => { if (!evs.length) return; const ev = {...evs[i % evs.length], id: 'd' + i}; queue.push(ev); window._lt = window._lt || {}; window._lt[ev.src] = window._lt[ev.dst] = Date.now()/1000; i++; }, 900); }
+setInterval(() => { if (S) panel(); }, 30000);
+</script>
+</body></html>
