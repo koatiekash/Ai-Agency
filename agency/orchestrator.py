@@ -25,6 +25,7 @@ from dataclasses import asdict
 
 from . import agents, llm, mailer
 from .compliance import MAX_ATTEMPTS, hard_rules
+from .paths import OUT_DIR
 from .org import BUSINESSES, CEO, MARKETING, MARKETING_COMPLIANCE, Business, paused_businesses
 from .realestate import deals as re_tools
 from .store import CommandCenter
@@ -34,7 +35,7 @@ from .trading.brokers import get_broker
 from .trading.risk import RiskLimits
 
 log = logging.getLogger("agency")
-OUT = os.path.join(os.path.dirname(__file__), "..", "output")
+OUT = OUT_DIR
 
 
 def _slug(s: str) -> str:

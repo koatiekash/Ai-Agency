@@ -15,7 +15,7 @@ import urllib.parse
 import urllib.request
 from zoneinfo import ZoneInfo
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+from ..paths import DATA_DIR  # noqa: E402
 
 # Operating footprint: the 12 Midwest states plus Florida.
 MIDWEST = ("IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI")

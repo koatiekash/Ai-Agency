@@ -24,7 +24,9 @@ import ssl
 from email.message import EmailMessage
 from email.utils import parseaddr
 
-DATA = os.path.join(os.path.dirname(__file__), "..", "data")
+from .paths import DATA_DIR
+
+DATA = DATA_DIR
 SUPPRESS = os.path.join(DATA, "unsubscribed.csv")
 SENT_LOG = os.path.join(DATA, "sent_emails.csv")
 OPT_OUT_WORDS = ("unsubscribe", "stop", "remove me", "do not contact", "don't contact")

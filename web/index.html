@@ -3,6 +3,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Agency City</title>
+<meta name="theme-color" content="#070521">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Agency City">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><text y='9' font-size='9'>🏙️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -54,7 +59,7 @@ pre{white-space:pre-wrap;word-break:break-word;font-size:12px;line-height:1.4;ma
 <header>
  <div><h1>AGENCY CITY</h1><p class="sub" id="sub">Three automated businesses, one Command Center</p></div>
  <div class="ctl"><span id="mode" class="pill"></span>
-  <button id="run">Run cycle now</button><button id="pause">Pause</button><button id="kill" class="danger">Kill switch</button></div>
+  <button id="run">Run cycle now</button><button id="pause">Pause</button><button id="kill" class="danger">Kill switch</button><button id="out" title="Sign out">Sign out</button></div>
 </header>
 <div class="kpis" id="kpis"></div>
 <div class="main">
@@ -230,10 +235,15 @@ async function panel(){
   const br = S.briefing?.payload;
   h += `<h3>CEO briefing</h3>` + (br ? `<p><b>${esc(br.headline)}</b></p>` + (br.by_business || []).map(x => `<div class="row"><span>${esc(x.business)}</span><span class="${{green:'gn',yellow:'am',red:'rd'}[x.status]}">${esc(x.summary)}</span></div>`).join('') + ((br.needs_human || []).length ? `<div class="banner">Needs you: ${(br.needs_human).map(esc).join(' · ')}</div>` : '') : '<p class="desc">No briefing yet. Run a cycle.</p>');
   h += `<h3>Setup checklist</h3>` + S.setup.map(s => `<div class="row"><span>${s.ok ? '✅' : '⬜'} ${esc(s.name)}</span><span class="mut" style="text-align:right">${s.ok ? 'ready' : esc(s.fix)}</span></div>`).join('');
+  h += `<h3>Upload data</h3><p class="desc">Replace a data file from any device: leads.csv (PropStream/BatchLeads export), buyers.csv, or price history such as US500.csv.</p><div class="filters"><select id="un">${['leads.csv','buyers.csv','US500.csv','NAS100.csv','XAUUSD.csv','tiktok_products.csv'].map(n => `<option>${n}</option>`).join('')}</select><input id="uf" type="file" accept=".csv,text/csv" style="flex:2 1 160px"><button id="ub">Upload</button></div><p class="desc" id="um" role="status"></p>`;
   h += `<h3>Archive</h3><div class="filters"><select id="fb"><option value="">All businesses</option><option>trading</option><option>wholesale</option><option>tiktok</option><option>shared</option></select><select id="fk"><option value="">All kinds</option>${['report','decision','review','action','backtest','asset','briefing','kpi','lesson','error'].map(k => `<option>${k}</option>`).join('')}</select></div><div id="arch"></div>`;
   P.innerHTML = h;
   const load = async () => { $('#arch').innerHTML = recs(await getHist({business: $('#fb').value, kind: $('#fk').value, limit: 60})); };
-  $('#fb').onchange = $('#fk').onchange = load; load(); return;
+  $('#fb').onchange = $('#fk').onchange = load; load();
+  $('#ub').onclick = async () => { const f = $('#uf').files[0], m = $('#um'); if (!f){ m.textContent = 'Choose a CSV file first.'; return; } if (DEMO){ m.textContent = 'Uploads work in the live app.'; return; }
+   m.textContent = 'Uploading…'; const r = await fetch('/api/upload/' + $('#un').value, {method:'POST', body: f}); const j = await r.json().catch(() => ({}));
+   m.textContent = r.ok ? `Saved ${j.saved}: ${j.rows} rows. The next cycle will use it.` : (j.detail || 'Upload failed.'); };
+  return;
  }
  if (b.id === 'trading-hq'){
   const a = S.trading.account || {};
@@ -255,7 +265,7 @@ function select(id){ sel = id; history.replaceState(null, '', '#' + id); updateC
 async function tick(){
  try {
   if (DEMO){ S = S || DEMO.state; }
-  else { const r = await fetch('/api/state?after=' + lastEvent); S = await r.json(); }
+  else { const r = await fetch('/api/state?after=' + lastEvent); if (r.status === 401){ location.href = '/login'; return; } S = await r.json(); }
   S.last_event_ts = S.last_event_ts || {};
   for (const ev of (DEMO ? [] : S.events)){ lastEvent = Math.max(lastEvent, ev.id); queue.push(ev);
    [ev.src, ev.dst].forEach(id => S.last_event_ts[id] = ev.ts); }
@@ -263,8 +273,9 @@ async function tick(){
   kpis(); updateCity(); if (!window._p){ window._p = 1; panel(); }
  } catch (e){ $('#ticker').textContent = 'Cannot reach the Command Center API. Is server.py running?'; }
 }
-async function post(u){ if (DEMO) return; await fetch(u, {method:'POST'}); tick(); }
+async function post(u){ if (DEMO) return; const r = await fetch(u, {method:'POST'}); if (r.status === 401){ location.href = '/login'; return; } tick(); }
 $('#run').onclick = () => post('/api/cycle');
+$('#out').onclick = async () => { if (DEMO) return; await fetch('/logout', {method:'POST'}); location.href = '/login'; };
 $('#pause').onclick = () => post('/api/pause?paused=' + !S.paused);
 $('#kill').onclick = () => post('/api/kill-switch?on=' + !(S.trading.account || {}).kill_switch);
 drawCity(); tick(); setInterval(tick, DEMO ? 60000 : 2500);

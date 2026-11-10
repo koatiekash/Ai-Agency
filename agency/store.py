@@ -13,7 +13,9 @@ import threading
 import time
 from typing import Any
 
-DB_PATH = os.environ.get("AGENCY_DB", os.path.join(os.path.dirname(__file__), "..", "data", "command_center.db"))
+from .paths import DATA_DIR  # noqa: E402
+
+DB_PATH = os.environ.get("AGENCY_DB", os.path.join(DATA_DIR, "command_center.db"))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS records (

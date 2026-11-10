@@ -1,0 +1,68 @@
+# Render Blueprint: Dashboard -> New -> Blueprint -> pick this repository.
+# You'll be asked for every value marked `sync: false`. Nothing secret is stored in this file.
+services:
+  - type: web
+    name: koatie-ai-agency
+    runtime: docker
+    plan: starter            # always-on; the free plan sleeps and has no disk
+    region: ohio
+    healthCheckPath: /healthz
+    autoDeploy: true
+    disk:
+      name: agency-data      # Command Center database, uploads and output live here
+      mountPath: /var/agency
+      sizeGB: 1
+    envVars:
+      - key: AGENCY_HOME
+        value: /var/agency
+      - key: HOST
+        value: 0.0.0.0
+      - key: AGENCY_SECRET
+        generateValue: true
+      - key: AGENCY_PASSWORD   # the password you'll type on your phone (10+ characters)
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: AGENCY_MODEL
+        value: claude-opus-5-5
+      - key: AGENCY_EFFORT
+        value: medium
+      - key: AGENCY_INTERVAL_MIN
+        value: "60"
+      - key: AGENCY_PAUSED
+        value: tiktok
+      # Trading: HeroFX via TradeLocker (demo first)
+      - key: HEROFX_TL_ENV
+        value: https://demo.tradelocker.com
+      - key: HEROFX_EMAIL
+        sync: false
+      - key: HEROFX_PASSWORD
+        sync: false
+      - key: HEROFX_SERVER
+        sync: false
+      - key: LIVE_TRADING
+        value: "false"
+      - key: TRADING_SYMBOL
+        value: US500
+      - key: RISK_MAX_CONTRACTS
+        value: "1"
+      - key: RISK_MAX_DAILY_LOSS
+        value: "300"
+      - key: RISK_MAX_DRAWDOWN
+        value: "1500"
+      - key: RISK_MAX_PER_TRADE
+        value: "150"
+      # Wholesale
+      - key: WHOLESALE_STATES_CLEARED
+        value: IL,IN,IA,KS,MI,MN,MO,NE,ND,OH,SD,WI,FL
+      - key: ATTOM_API_KEY
+        sync: false
+      # Gmail
+      - key: GMAIL_ADDRESS
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: BUSINESS_NAME
+        sync: false
+      - key: BUSINESS_ADDRESS
+        sync: false

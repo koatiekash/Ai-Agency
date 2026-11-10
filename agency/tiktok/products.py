@@ -12,7 +12,9 @@ import csv
 import math
 import os
 
-DATA = os.path.join(os.path.dirname(__file__), "..", "..", "data", "tiktok_products.csv")
+from ..paths import DATA_DIR
+
+DATA = os.path.join(DATA_DIR, "tiktok_products.csv")
 
 TIKTOK_REFERRAL_FEE = float(os.environ.get("TIKTOK_FEE", 0.08))       # check your current category rate
 AFFILIATE_COMMISSION = float(os.environ.get("TIKTOK_AFFILIATE", 0.15))

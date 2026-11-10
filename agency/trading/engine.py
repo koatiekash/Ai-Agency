@@ -16,7 +16,7 @@ from dataclasses import asdict, dataclass
 import numpy as np
 import pandas as pd
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+from ..paths import DATA_DIR  # noqa: E402
 
 # Instrument specs: point value in USD per 1 contract/lot, commission+slippage per round trip.
 # CFD point values differ between brokers, so for HeroFX the broker's own contract size is

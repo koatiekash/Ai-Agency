@@ -19,11 +19,31 @@ output is placeholder text and nothing is executed. The UI shows `SIMULATED` whi
 Other ways to run it:
 
 ```bash
-python run.py                 # one cycle, all businesses, prints the results
+python run.py                 # one cycle, all active businesses, prints the results
 python run.py trading         # one business
 python run.py --loop 60       # headless, a cycle every 60 minutes
 python -m pytest -q tests     # tests (offline, no API calls)
 ```
+
+## Run it in the cloud (open it from your phone or any computer)
+
+The repository includes a `Dockerfile` and a Render blueprint (`render.yaml`). Render runs the agency
+24/7 on an always-on server with a permanent disk for the Command Center, behind HTTPS and a password.
+Cost: about $7.25/month (Starter instance + 1 GB disk), plus your Claude API usage.
+
+1. Sign up at render.com and connect your GitHub account (allow access to this repository).
+2. **New → Blueprint**, choose this repository and branch, then **Apply**.
+3. Fill in the values it asks for. Required: `AGENCY_PASSWORD` (10+ characters, this is your login) and
+   `ANTHROPIC_API_KEY`. Leave HeroFX, ATTOM and Gmail blank until you have them. Add them later under the
+   service's **Environment** tab, and the service restarts with them.
+4. When the deploy finishes, open the `https://koatie-ai-agency.onrender.com` address it shows (the exact
+   name may differ), sign in, and on your phone use **Add to Home Screen** to get an app icon.
+
+From then on, every push to the branch redeploys automatically. Upload lead lists, buyer lists or price
+history from the **Upload data** box in the Command Center, from any device.
+
+Any other host that runs Docker works the same way: set `HOST=0.0.0.0`, `AGENCY_HOME` to a persistent
+volume, and `AGENCY_PASSWORD`. The server refuses to start in hosted mode without a password.
 
 ## The org chart (`agency/org.py`)
 

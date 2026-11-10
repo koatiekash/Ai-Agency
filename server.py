@@ -1,6 +1,9 @@
-"""Web server: the 3D city UI, the Command Center API, and the autonomous scheduler.
+"""Web server: the city UI, the Command Center API, and the autonomous scheduler.
 
-    python server.py                    # UI at http://localhost:8000, cycles every AGENCY_INTERVAL_MIN
+    python server.py      # UI at http://localhost:8000, a cycle every AGENCY_INTERVAL_MIN
+
+Hosted (HOST=0.0.0.0) it refuses to start without AGENCY_PASSWORD, and every page and
+API call requires a signed-in session.
 """
 from __future__ import annotations
 
@@ -13,12 +16,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import urllib.parse
+
 import uvicorn
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from agency import llm, org
+from agency import auth, llm, org
+from agency.paths import DATA_DIR, OUT_DIR
 from agency.orchestrator import run_cycle
 from agency.store import CommandCenter
 
@@ -49,9 +55,84 @@ def scheduler():
         time.sleep(INTERVAL_MIN * 60)
 
 
+PUBLIC = {"/login", "/healthz"}
+
+
+@app.middleware("http")
+async def require_login(request: Request, call_next):
+    if request.url.path in PUBLIC or auth.valid(request.cookies.get(auth.COOKIE)):
+        return await call_next(request)
+    if request.url.path.startswith("/api/") or request.method != "GET":
+        return JSONResponse({"detail": "Sign in required."}, status_code=401)
+    return RedirectResponse("/login", status_code=303)
+
+
+def _ip(request: Request) -> str:
+    fwd = request.headers.get("x-forwarded-for", "")
+    return fwd.split(",")[0].strip() or (request.client.host if request.client else "?")
+
+
+@app.get("/login")
+def login_page(error: str = ""):
+    msg = {"bad": "Wrong password.", "locked": "Too many attempts. Try again in 15 minutes."}.get(error, "")
+    return HTMLResponse(auth.LOGIN_PAGE.replace("__ERR__", f'<p class="err" role="alert">{msg}</p>' if msg else ""))
+
+
+@app.post("/login")
+async def login(request: Request):
+    ip = _ip(request)
+    if auth.locked_out(ip):
+        return RedirectResponse("/login?error=locked", status_code=303)
+    form = urllib.parse.parse_qs((await request.body()).decode("utf-8", "replace"))
+    if not auth.check_password(ip, (form.get("password") or [""])[0]):
+        return RedirectResponse("/login?error=bad", status_code=303)
+    resp = RedirectResponse("/", status_code=303)
+    https = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
+    resp.set_cookie(auth.COOKIE, auth.make_token(), max_age=auth.MAX_AGE, httponly=True,
+                    secure=https, samesite="lax")
+    return resp
+
+
+@app.post("/logout")
+def logout():
+    resp = RedirectResponse("/login", status_code=303)
+    resp.delete_cookie(auth.COOKIE)
+    return resp
+
+
+@app.get("/healthz")
+def healthz():
+    return {"ok": True, "cycle": cc.get("cycle", 0)}
+
+
 @app.get("/")
 def index():
     return FileResponse(os.path.join(WEB, "index.html"))
+
+
+def upload_names() -> set[str]:
+    from agency.trading.risk import RiskLimits
+    return {"leads.csv", "buyers.csv", "tiktok_products.csv"} | {f"{s}.csv" for s in RiskLimits().allowed_symbols}
+
+
+@app.post("/api/upload/{name}")
+async def upload(name: str, request: Request):
+    """Replace one data file (lead list, buyer list, price history…) from any device."""
+    if name not in upload_names():
+        raise HTTPException(400, f"Allowed files: {', '.join(sorted(upload_names()))}")
+    body = await request.body()
+    if not body or len(body) > 20 * 1024 * 1024:
+        raise HTTPException(400, "File is empty or larger than 20 MB.")
+    first = body[:2000].decode("utf-8-sig", "replace").splitlines()[0] if body else ""
+    if "," not in first:
+        raise HTTPException(400, "That doesn't look like a CSV file (no header row with commas).")
+    tmp = os.path.join(DATA_DIR, name + ".tmp")
+    with open(tmp, "wb") as f:
+        f.write(body)
+    os.replace(tmp, os.path.join(DATA_DIR, name))
+    rows = body.count(b"\n")
+    cc.event("command", "command", "shared", "approved", f"Uploaded {name} ({rows} rows)")
+    return {"saved": name, "rows": rows, "header": first[:200]}
 
 
 @app.get("/api/state")
@@ -80,13 +161,13 @@ def setup_status():
     from agency.trading.brokers import get_broker
     broker = get_broker()
     return [
-        {"name": "Claude agents", "ok": llm.online(), "fix": "Add ANTHROPIC_API_KEY to .env"},
+        {"name": "Claude agents", "ok": llm.online(), "fix": "Add ANTHROPIC_API_KEY to .env (or the host's environment settings)"},
         {"name": "HeroFX account", "ok": broker.name.startswith("herofx"),
          "fix": broker.reason or "Add HEROFX_* TradeLocker credentials to .env (demo first)"},
         {"name": "Live trading", "ok": broker.name == "herofx-live",
          "fix": "After demo results hold up: live TradeLocker URL + LIVE_TRADING=true"},
-        {"name": "Real estate data", "ok": bool(env("ATTOM_API_KEY")) or os.path.exists("data/leads.csv"),
-         "fix": "Set ATTOM_API_KEY + WHOLESALE_ZIPS, or drop a PropStream/BatchLeads export at data/leads.csv"},
+        {"name": "Real estate data", "ok": bool(env("ATTOM_API_KEY")) or os.path.exists(os.path.join(DATA_DIR, "leads.csv")),
+         "fix": "Set ATTOM_API_KEY + WHOLESALE_ZIPS, or upload a PropStream/BatchLeads export as leads.csv below"},
         {"name": "Wholesale footprint", "ok": True,
          "fix": ", ".join(sorted(deals.states_cleared()))},
         {"name": "Gmail", "ok": mailer.configured() and bool(env("BUSINESS_ADDRESS")),
@@ -115,7 +196,10 @@ def pause(paused: bool = True):
 
 @app.post("/api/business/{bid}/pause")
 def pause_business(bid: str, paused: bool = True):
-    org.business(bid)  # 404s on unknown ids via KeyError
+    try:
+        org.business(bid)
+    except KeyError:
+        raise HTTPException(404, f"Unknown business '{bid}'.")
     cur = org.paused_businesses(cc)
     cur = cur | {bid} if paused else cur - {bid}
     cc.set("paused_businesses", sorted(cur))
@@ -134,10 +218,15 @@ def kill_switch(on: bool = True):
     return {"kill_switch": on}
 
 
-app.mount("/output", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "output")), name="output")
+app.mount("/output", StaticFiles(directory=OUT_DIR), name="output")
 
 if __name__ == "__main__":
+    host = os.environ.get("HOST", "127.0.0.1")
+    if host not in ("127.0.0.1", "localhost") and len(auth.password()) < 10:
+        raise SystemExit("Refusing to start: the server is reachable from other machines, so set "
+                         "AGENCY_PASSWORD to a password of at least 10 characters.")
     cc.set("running", False)
     if os.environ.get("AGENCY_AUTORUN", "1") == "1":
         threading.Thread(target=scheduler, daemon=True).start()
-    uvicorn.run(app, host=os.environ.get("HOST", "127.0.0.1"), port=int(os.environ.get("PORT", 8000)))
+    uvicorn.run(app, host=host, port=int(os.environ.get("PORT", 8000)),
+                proxy_headers=True, forwarded_allow_ips="*")
